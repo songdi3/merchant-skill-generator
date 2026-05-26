@@ -1,0 +1,159 @@
+{
+  "name": "merchant-skill-generator",
+  "display_name": "商家 AI 技能生成器",
+  "description": "帮助生活服务类商家快速生成专属 AI 技能包（.skill 文件）。商家只需跟 AI 对话回答问题，即可生成包含门店信息、推荐服务、预约排队等能力的对话机器人技能。支持通过 MCP 实时获取美团/大众点评商家数据，自动解析门店信息并生成技能。触发词：创建一个商家技能、帮我的店做一个 AI、生成技能包、做个店铺 AI 助手、帮我生成一个店铺 AI。",
+  "version": "1.1.0",
+  "author": "AI Assistant",
+  "license": "MIT",
+  "category": "工具生成",
+  "mcp_server": {
+    "transport": "streamable-http",
+    "url": "https://mcp.miaoda.cloud/merchant-generator"
+  },
+  "tools": [
+    {
+      "name": "fetch_meituan_shop",
+      "display_name": "美团商家数据获取",
+      "description": "通过美团/大众点评店铺页面 URL 或关键词，实时获取商家基本信息、地址、营业时间、评分、热门服务/商品列表及价格。用于自动填充生成技能所需的商家信息，无需手动填写问卷。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "description": "数据来源类型",
+            "enum": ["meituan_url", "dianping_url", "keyword"]
+          },
+          "value": {
+            "type": "string",
+            "description": "店铺 URL 或搜索关键词",
+            "examples": ["https://www.meituan.com/cate/xxx", "置顶健身", "霍营健身房"]
+          }
+        },
+        "required": ["source", "value"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "fetch_meituan_queue",
+      "display_name": "美团排队状态查询",
+      "description": "查询美团/大众点评商家当前排队状态、可用桌型、等待人数等。用于生成支持在线排队功能的商家技能。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "shop_id": {
+            "type": "string",
+            "description": "美团门店 ID"
+          }
+        },
+        "required": ["shop_id"]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": true
+      }
+    },
+    {
+      "name": "generate_merchant_skill",
+      "display_name": "生成商家技能",
+      "description": "根据商家配置信息生成可安装的 .skill 文件。支持静态模式和 MCP 模式两种数据来源。生成后自动打包，可直接安装使用。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "merchant": {
+            "type": "object",
+            "description": "商家基础信息",
+            "properties": {
+              "name": {"type": "string"},
+              "city": {"type": "string"},
+              "industry": {"type": "string"},
+              "description": {"type": "string"},
+              "language": {"type": "string"}
+            },
+            "required": ["name", "city", "industry"]
+          },
+          "stores": {
+            "type": "array",
+            "description": "门店列表",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {"type": "string"},
+                "address": {"type": "string"},
+                "hours": {"type": "object"},
+                "phone": {"type": "string"},
+                "map_keyword": {"type": "string"}
+              }
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "description": "推荐服务/商品列表"
+          },
+          "modules": {
+            "type": "object",
+            "description": "开通的能力模块"
+          },
+          "data_mode": {
+            "type": "string",
+            "enum": ["static", "mcp"],
+            "description": "数据模式"
+          },
+          "mcp_config": {
+            "type": "object",
+            "description": "MCP 配置（data_mode=mcp 时必填）"
+          },
+          "tone": {
+            "type": "string",
+            "description": "品牌调性"
+          }
+        },
+        "required": ["merchant"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "package_skill",
+      "display_name": "打包技能文件",
+      "description": "将生成的 skill 目录打包成 .skill 文件，供分发和安装。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "skill_name": {
+            "type": "string",
+            "description": "技能目录名称"
+          },
+          "output_path": {
+            "type": "string",
+            "description": "输出路径（可选）"
+          }
+        },
+        "required": ["skill_name"]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ],
+  "brand_prompt": {
+    "system_instruction": "你是商家 AI 技能生成器，帮助生活服务类商家快速生成专属 AI 技能。工作时优先使用 MCP 工具获取实时数据（美团商家信息），自动解析并填充生成配置，减少商家手动填写的工作量。生成的技能应包含品牌调性指南，确保 AI 助手说话风格与商家一致。",
+    "tone": {
+      "personality": "professional_and_efficient",
+      "avoid": ["hype", "clickbait", "overpromising"]
+    }
+  }
+}

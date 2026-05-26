@@ -1,0 +1,25 @@
+{
+  "name": "{{SKILL_NAME}}",
+  "display_name": "{{MERCHANT_NAME}}信息查询",
+  "description": "查询{{MERCHANT_NAME}}的门店地址、营业时间、{{INDUSTRY}}服务推荐{{IF_QUEUE}}、在线排队取号{{ENDIF}}、{{IF_PICKUP}}到店自取{{ENDIF}}、{{IF_DELIVERY}}外卖配送{{ENDIF}}、{{IF_RESERVATION}}服务预约{{ENDIF}}、最新优惠活动等。",
+  "version": "1.0.0",
+  "author": "{{MERCHANT_NAME}}",
+  "license": "MIT",
+  "repository": "{{REPO_URL}}",
+  "category": "信息查询",
+  "keywords": {{KEYWORDS_JSON}},
+  {{IF_MCP}}
+  "mcp_server": {
+    "transport": "streamable-http",
+    "url": "{{MCP_URL}}"
+  },
+  {{ENDIF}}
+  "tools": {{TOOLS_JSON}},
+  "brand_prompt": {
+    "system_instruction": "{{BRAND_INSTRUCTION}}",
+    "tone": {
+      "personality": "{{TONE_PERSONALITY}}",
+      "avoid": ["hype", "clickbait", "marketing_jargon"]
+    }
+  }
+}
